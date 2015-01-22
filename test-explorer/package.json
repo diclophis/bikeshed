@@ -1,0 +1,15 @@
+{
+  "name": "TestExplorer",
+  "description": "Simple Test Explorer.",
+  "version": "0.1",
+  "main": "index.html",
+  "single-instance": false,
+  "window": {
+    "toolbar": true,
+    "width": 512,
+    "height": 512,
+    "show": true,
+    "show_in_taskbar": true,
+    "focus": true
+  }
+}

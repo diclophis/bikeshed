@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var path = require('path');
+var spawn = require('child_process').spawn;
+var nwFindpath = require('nw').findpath;
+var nwBin = nwFindpath();
+
+function run() {
+
+  /*
+  // Normalize cli args
+  var args = process.argv.slice(2);
+  var cwd = (args.length < 1) ? '.' : args[0];
+  if (!fs.existsSync(path.resolve(cwd))) {
+    args = ['.'].concat(args);
+  } else {
+    args = [cwd].concat(args.slice(1));
+  }
+  */
+
+  //TODO, this is sorta a hack
+  args = ['./node_modules/bikeshed/test-explorer', 'math.gif'];
+
+  console.log(args);
+
+  // Spawn node-webkit
+  var nw = spawn(nwBin, args, { stdio: 'inherit' });
+  nw.on('close', function() {
+    process.nextTick(function() {
+      process.exit(0);
+    });
+  });
+}
+
+run();
