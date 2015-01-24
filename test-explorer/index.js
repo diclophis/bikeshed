@@ -140,11 +140,14 @@ if (typeof(require) === 'function') {
   });
 
   // Load in dependencies
+  var fs = require('fs');
   var NWGui = require('nw.gui');
   var Cucumber = require('cucumber');
+  var ansispan = require('./ansispan');
 
   // Grab the arguments
-  var url = NWGui.App.argv[0];
+  var projectDirectory = NWGui.App.argv[0];
+  var url = "http://google.com/";
 
   // var win = gui.Window.open('http://google.com/', {
   var guiWin = NWGui.Window.open(url, {
@@ -153,7 +156,7 @@ if (typeof(require) === 'function') {
     focus: false,
     frame: true,
     toolbar: true,
-    show: true
+    show: false
   });
 
   var everyContextFrame = function() {
@@ -205,39 +208,98 @@ if (typeof(require) === 'function') {
     }
   });
 
-  var featureSource = "Feature: One Two Three\n  Scenario: ABC\n    Given 123";
 
-  var supportCode = function() {
-    this.World = function(callback) {
-      console.log("Make World");
-      callback();
+  var shedFileOpened = function(err, fd) {
+    if (err) throw err;
+
+    var featureSource = fd.toString();
+
+    var supportCode = function() {
+      this.World = function(callback) {
+        console.log("Make World");
+        callback({});
+      };
+
+      //var Given = When = Then = this.defineStep;
+
+      //Given(/^(\d+)$/, function(number, callback) {
+      //  console.log(number);
+      //  callback();
+      //});
+
+      var re1='((?:[a-z]*))';  // Word 1
+
+      var filler='.*?';  // Non-greedy match on filler
+      //var filler='.*';  // Non-greedy match on filler
+
+      var re3='([a-z])';  // Any Single Word Character (Not Whitespace) 1
+      var re4='.*?';  // Non-greedy match on filler
+
+      var simpleWord='([a-z]*)';  // Word 2
+
+      var re6='.*?';  // Non-greedy match on filler
+      var re7='((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))';  // HTTP URL 1
+
+      //var authenticationTokens = new RegExp("I" + filler + "am" + filler + "authenticated" + filler + "as" + filler + simpleWord, ["i"]);
+      var authenticationTokens = new RegExp(".*authenticated.*as\ (.*)", ["i"]);
+      var needToOpenUrl = new RegExp(".*visit\ (.*)", ["i"]);
+      var browserResolution = new RegExp(".*resolution.*is\ (.*)", ["i"]);
+      var followingUsers = new RegExp(".*the.*following.*users.*exist", ["i"]);
+
+      //Given I am authenticated as nobody
+
+      //Given(anything, function(callback) {
+      //  console.log("cheese", tokens);
+      //  callback();
+      //});
+
+      this.Given(followingUsers, function(tokens, callback) {
+        console.log("users: " + tokens.hashes());
+        callback(true);
+      });
+
+      this.Given(browserResolution, function(tokens, callback) {
+        console.log("tokens res: " + tokens);
+        callback(true);
+      });
+
+      this.Given(authenticationTokens, function(tokens, callback) {
+        console.log("tokens: " + tokens);
+        callback(true);
+      });
+
+      this.When(needToOpenUrl, function(url, callback) {
+        console.log("when: " + url);
+        callback(true);
+      });
     };
 
-    var Given = When = Then = this.defineStep;
+    var cucumber = Cucumber(featureSource, supportCode);
+          var options = {logToConsole: false, coffeeScriptSnippets: false, snippets: false};
+          var formatter = Cucumber.Listener.PrettyFormatter(options);
+          //var formatter = Cucumber.Listener.SummaryFormatter(options);
+          //var formatter = Cucumber.Listener.ProgressFormatter(options);
 
-    Given(/^(\d+)$/, function(number, callback) {
-      console.log(number);
-      callback();
+    cucumber.attachListener(formatter);
+
+    cucumber.start(function() {
+      //console.log("finished cucumber", cucumber);
+      var p = document.createElement('pre');
+      //console.log("finished" + ansispan(formatter.getLogs()));
+      p.innerHTML = ansispan(formatter.getLogs());
+      document.body.appendChild(p);
     });
+
   };
 
-/*
-  var supportCodeHelper = {
-    Around           : self.defineAroundHook,
-    Before           : self.defineBeforeHook,
-    After            : self.defineAfterHook,
-    Given            : self.defineStep,
-    When             : self.defineStep,
-    Then             : self.defineStep,
-    defineStep       : self.defineStep,
-    registerListener : self.registerListener,
-    registerHandler  : self.registerHandler,
-    World            : worldConstructor
-  };
-*/
+  window.boot = function() {
+    var util = require('./util')
+    var dirname = util.dirname;
 
-  var cucumber = Cucumber(featureSource, supportCode);
-  cucumber.start(function() {
-    console.log("finished cucumber");
-  });
+    console.log('nw directory: ' + process.cwd(), dirname, projectDirectory + "/Shedfile");
+
+    fs.readFile(projectDirectory + "/Shedfile", shedFileOpened);
+  };
+
+  boot();
 }
