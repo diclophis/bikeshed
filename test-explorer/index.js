@@ -240,12 +240,12 @@ if (typeof(require) === 'function') {
 
       this.Given(followingUsers, function(tokens, callback) {
         console.log(this.foo, "users: " + tokens.hashes());
-        callback("brizoke");
+        callback(false); // return presence of errors
       });
 
       this.Given(followingBrowserResolution, function(tokens, callback) {
         console.log(this.foo, "resolutions: " + tokens.hashes());
-        callback("broke");
+        callback(false); // return presence of errors
       });
 
       //this.Given(browserResolution, function(tokens, callback) {
