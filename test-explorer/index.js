@@ -214,63 +214,52 @@ if (typeof(require) === 'function') {
 
     var featureSource = fd.toString();
 
+    var worldCount = 0;
+
     var supportCode = function() {
       this.World = function(callback) {
-        console.log("Make World");
-        callback({});
+        console.log(this.bar, "Make World");
+        callback({foo: 'bar' + worldCount++});
       };
 
-      //var Given = When = Then = this.defineStep;
-
-      //Given(/^(\d+)$/, function(number, callback) {
-      //  console.log(number);
-      //  callback();
-      //});
-
       var re1='((?:[a-z]*))';  // Word 1
-
       var filler='.*?';  // Non-greedy match on filler
-      //var filler='.*';  // Non-greedy match on filler
-
       var re3='([a-z])';  // Any Single Word Character (Not Whitespace) 1
       var re4='.*?';  // Non-greedy match on filler
-
       var simpleWord='([a-z]*)';  // Word 2
-
       var re6='.*?';  // Non-greedy match on filler
       var re7='((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))';  // HTTP URL 1
 
       //var authenticationTokens = new RegExp("I" + filler + "am" + filler + "authenticated" + filler + "as" + filler + simpleWord, ["i"]);
       var authenticationTokens = new RegExp(".*authenticated.*as\ (.*)", ["i"]);
       var needToOpenUrl = new RegExp(".*visit\ (.*)", ["i"]);
-      var browserResolution = new RegExp(".*resolution.*is\ (.*)", ["i"]);
+      //var browserResolution = new RegExp(".*resolution.*is\ (.*)", ["i"]);
       var followingUsers = new RegExp(".*the.*following.*users.*exist", ["i"]);
+      var followingBrowserResolution = new RegExp(".*my.*browser.*resolution.*is.*", ["i"]);
 
-      //Given I am authenticated as nobody
+      this.Given(followingUsers, function(tokens, callback) {
+        console.log(this.foo, "users: " + tokens.hashes());
+        callback();
+      });
 
-      //Given(anything, function(callback) {
-      //  console.log("cheese", tokens);
+      this.Given(followingBrowserResolution, function(tokens, callback) {
+        console.log(this.foo, "resolutions: " + tokens.hashes());
+        callback();
+      });
+
+      //this.Given(browserResolution, function(tokens, callback) {
+      //  console.log(this.foo, "res: " + tokens);
       //  callback();
       //});
 
-      this.Given(followingUsers, function(tokens, callback) {
-        console.log("users: " + tokens.hashes());
-        callback(true);
-      });
-
-      this.Given(browserResolution, function(tokens, callback) {
-        console.log("tokens res: " + tokens);
-        callback(true);
-      });
-
       this.Given(authenticationTokens, function(tokens, callback) {
-        console.log("tokens: " + tokens);
-        callback(true);
+        console.log(this.foo, "tokens: " + tokens);
+        callback();
       });
 
       this.When(needToOpenUrl, function(url, callback) {
-        console.log("when: " + url);
-        callback(true);
+        console.log(this.foo, "when: " + url);
+        callback();
       });
     };
 
