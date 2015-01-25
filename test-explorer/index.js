@@ -218,7 +218,7 @@ if (typeof(require) === 'function') {
 
     var supportCode = function() {
       this.World = function(callback) {
-        console.log(this.bar, "Make World");
+        console.log(this.bar, "Make World: " + worldCount);
         callback({foo: 'bar' + worldCount++});
       };
 
@@ -236,15 +236,16 @@ if (typeof(require) === 'function') {
       //var browserResolution = new RegExp(".*resolution.*is\ (.*)", ["i"]);
       var followingUsers = new RegExp(".*the.*following.*users.*exist", ["i"]);
       var followingBrowserResolution = new RegExp(".*my.*browser.*resolution.*is.*", ["i"]);
+      var cssSelectorShouldBePresent = new RegExp(".*should.*see\ (.*)", ["i"]);
 
       this.Given(followingUsers, function(tokens, callback) {
         console.log(this.foo, "users: " + tokens.hashes());
-        callback();
+        callback("brizoke");
       });
 
       this.Given(followingBrowserResolution, function(tokens, callback) {
         console.log(this.foo, "resolutions: " + tokens.hashes());
-        callback();
+        callback("broke");
       });
 
       //this.Given(browserResolution, function(tokens, callback) {
@@ -254,12 +255,17 @@ if (typeof(require) === 'function') {
 
       this.Given(authenticationTokens, function(tokens, callback) {
         console.log(this.foo, "tokens: " + tokens);
-        callback();
+        callback("broke");
       });
 
       this.When(needToOpenUrl, function(url, callback) {
         console.log(this.foo, "when: " + url);
-        callback();
+        callback("Error");
+      });
+
+      this.Then(cssSelectorShouldBePresent, function(cssSelector, callback) {
+        console.log(this.foo, "css: " + cssSelector);
+        callback("error");
       });
     };
 
