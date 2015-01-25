@@ -216,11 +216,17 @@ if (typeof(require) === 'function') {
 
     var worldCount = 0;
 
+    var extendedSupportCode = require(projectDirectory + '/features/step_definitions');
+
+    console.log("EXTEND?", extendedSupportCode);
+
     var supportCode = function() {
       this.World = function(callback) {
         console.log(this.bar, "Make World: " + worldCount);
         callback({foo: 'bar' + worldCount++});
       };
+
+      extendedSupportCode.call(this);
 
       var re1='((?:[a-z]*))';  // Word 1
       var filler='.*?';  // Non-greedy match on filler
