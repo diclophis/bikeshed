@@ -125,7 +125,7 @@ var shedFileOpened = function(err, fd) {
   };
 
   var cucumber = Cucumber(featureSource, supportCode);
-  var options = {logToConsole: false, coffeeScriptSnippets: false, snippets: false};
+  var options = {logToConsole: false, coffeeScriptSnippets: false, snippets: true};
   var formatter = Cucumber.Listener.PrettyFormatter(options);
   //var formatter = Cucumber.Listener.SummaryFormatter(options);
   //var formatter = Cucumber.Listener.ProgressFormatter(options);
