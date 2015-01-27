@@ -7,6 +7,8 @@
 var fs = require('fs');
 var NWGui = require('nw.gui');
 var Cucumber = require('cucumber');
+var Promise = require("bluebird");
+
 var ansispan = require('./ansispan');
 var util = require('./util')
 var dirname = util.dirname;
@@ -23,14 +25,17 @@ var re4='.*?';  // Non-greedy match on filler
 var simpleWord='([a-z]*)';  // Word 2
 var re6='.*?';  // Non-greedy match on filler
 var re7='((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))';  // HTTP URL 1
+//var foundCss = '([#|\\.]?)([\\w|:|\\s|\\.]+)';
+
 
 //var authenticationTokens = new RegExp("I" + filler + "am" + filler + "authenticated" + filler + "as" + filler + simpleWord, ["i"]);
 var authenticationTokens = new RegExp(".*authenticated.*as\ (.*)", ["i"]);
-var needToOpenUrl = new RegExp(".*visit\ (.*)", ["i"]);
+var needToOpenUrl = new RegExp(".*window\ (.*)", ["i"]);
 //var browserResolution = new RegExp(".*resolution.*is\ (.*)", ["i"]);
 var followingUsers = new RegExp(".*the.*following.*users.*exist", ["i"]);
 var followingBrowserResolution = new RegExp(".*my.*browser.*resolution.*is.*", ["i"]);
-var cssSelectorShouldBePresent = new RegExp(".*should.*see\ (.*)", ["i"]);
+var cssSelectorShouldBePresent = new RegExp(".*see\ (.*)", ["i"]);
+//console.log(cssSelectorShouldBePresent.toString());
 
 var vertexS = document.getElementById("vertex-0").innerHTML;
 var fragmentS = document.getElementById("fragment-0").innerHTML;
@@ -72,16 +77,13 @@ var shedFileOpened = function(err, fd) {
       callback();
     });
 
-    this.When(needToOpenUrl, function(url, callback) {
-      //console.log(this.foo, "when: " + url);
+    this.Given(needToOpenUrl, function(url, callback) {
+      // <canvas id="webgl-container" width="512" height="512"></canvas>
+      // <img id="img-0" src="cyan.jpg"/>
+      // <img id="img-1" src="cyan-alt.jpg"/>
       var leftImg = null;
       var rightImg = null;
       var canvasC = false;
-
-
-//    <canvas id="webgl-container" width="512" height="512"></canvas>
-//    <img id="img-0" src="cyan.jpg"/>
-//    <img id="img-1" src="cyan-alt.jpg"/>
 
       var guiWidth = 512;
       var guiHeight = 512;
@@ -102,7 +104,7 @@ var shedFileOpened = function(err, fd) {
       canvasC.width = leftImg.width = rightImg.width = guiWidth;
       canvasC.height = leftImg.height = rightImg.height = guiHeight;
 
-      nwglBridge(window, this.guiWin, canvasC, leftImg, rightImg, vertexS, fragmentS, callback);
+      this.lastBridge = nwglBridge(window, this.guiWin, canvasC, leftImg, rightImg, vertexS, fragmentS, callback);
 
       leftImg.src = rightImg.src = "cyan.jpg";
 
@@ -115,12 +117,11 @@ var shedFileOpened = function(err, fd) {
     });
 
     this.Then(cssSelectorShouldBePresent, function(cssSelector, callback) {
-      console.log(this.worldIndex, "css: " + cssSelector, "guiWin: " + this.guiWin.window.document);
+      //console.log(this.worldIndex, "css: " + cssSelector, "guiWin: " + this.guiWin.window.document);
       var foundSelector = this.guiWin.window.document.querySelector(cssSelector);
-      console.log("wtf: " + foundSelector);
-
       //callback("error");
-      callback(!foundSelector);
+      //callback(!foundSelector);
+      callback();
     });
   };
 
