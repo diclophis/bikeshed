@@ -149,3 +149,5 @@ window.boot = function() {
 window.addEventListener('load', function() {
   boot();
 });
+
+console.log("foo");

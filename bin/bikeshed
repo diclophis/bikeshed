@@ -7,18 +7,6 @@ var nwFindpath = require('nw').findpath;
 var nwBin = nwFindpath();
 
 function run() {
-
-  /*
-  // Normalize cli args
-  var args = process.argv.slice(2);
-  var cwd = (args.length < 1) ? '.' : args[0];
-  if (!fs.existsSync(path.resolve(cwd))) {
-    args = ['.'].concat(args);
-  } else {
-    args = [cwd].concat(args.slice(1));
-  }
-  */
-
   var dirname = __dirname;
   var workingDirectory = process.cwd();
   console.log('bikeshed directory: ' + workingDirectory, dirname);
@@ -26,30 +14,29 @@ function run() {
   //TODO, this is sorta a hack
   args = ['./node_modules/bikeshed/test-explorer', workingDirectory];
 
-  //console.log(args);
-
   // Spawn node-webkit
-  //var nw = spawn(nwBin, args, { stdio: 'inherit' });
-  var nw = spawn(nwBin, args);
-  
-  //nw.stderr.pipe(process.stdout);
+  var nw = null
+  var wrapPipes = false;
 
-// parser.js
-var Transform = require('stream').Transform;
+  //TODO: figure out nicer way to wrap this stream and replace ugly node-webkit output!
+  if (wrapPipes) {
+    nw = spawn(nwBin, args);
 
-var parser = new Transform();
-parser._transform = function(data, encoding, done) {
-console.log('wtf' + data);
+    // parser.js
+    var Transform = require('stream').Transform;
+    var parser = new Transform();
+    parser._transform = function(data, encoding, done) {
+      console.log('wtf' + data);
+      //[5909:0123/204000:INFO:CONSOLE(218)] ""Make World"", source: file:///Users/mavenlink/workspace/bikeshed-example/node_modules/bikeshed/test-explorer/index.js (218)
+      this.push(data + 'XXXXXX');
+      done();
+    };
 
-//[5909:0123/204000:INFO:CONSOLE(218)] ""Make World"", source: file:///Users/mavenlink/workspace/bikeshed-example/node_modules/bikeshed/test-explorer/index.js (218)
-
-  this.push(data + 'XXXXXX');
-  done();
-};
-
-nw.stderr.pipe(parser);
-nw.stdout.pipe(parser);
-
+    nw.stderr.pipe(parser);
+    nw.stdout.pipe(parser);
+  } else {
+    nw = spawn(nwBin, args, { stdio: 'inherit' });
+  }
 
   nw.on('close', function() {
     process.nextTick(function() {
