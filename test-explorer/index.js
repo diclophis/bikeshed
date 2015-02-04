@@ -13,6 +13,53 @@ var ansispan = require('./ansispan');
 var util = require('./util')
 var dirname = util.dirname;
 var nwglBridge = require('./nwgl_bridge');
+var slugify = require('./slug');
+
+NWGui.Window.get().showDevTools();
+
+var makeNewWindow = function() {
+      var leftImg = null;
+      var rightImg = null;
+      var canvasC = false;
+
+      var guiWidth = 512;
+      var guiHeight = 512;
+
+      this.guiWin = NWGui.Window.open(url, {
+        width: guiWidth,
+        height: guiHeight,
+        focus: false,
+        frame: true,
+        toolbar: true,
+        show: true
+      });
+
+      leftImg = document.createElement("img");
+      rightImg = document.createElement("img");
+      canvasC = document.createElement("canvas");
+
+      canvasC.width = leftImg.width = rightImg.width = guiWidth;
+      canvasC.height = leftImg.height = rightImg.height = guiHeight;
+
+      this.lastBridge = nwglBridge(window, this.guiWin, canvasC, leftImg, rightImg, vertexS, fragmentS, callback);
+
+      leftImg.src = rightImg.src = "cyan.jpg";
+
+      document.body.appendChild(canvasC);
+      document.body.appendChild(leftImg);
+      document.body.appendChild(rightImg);
+};
+
+var wang = Promise.promisify(function(a, b) {
+  console.log(a.toString(), b.toString());
+
+  //console.log("start!!!!!!!!!!!", a);
+
+  setTimeout(function() {
+    b(false, 'abc');
+  }, 5000);
+});
+
 
 // Grab the arguments
 var projectDirectory = NWGui.App.argv[0];
@@ -24,7 +71,7 @@ var re3='([a-z])';  // Any Single Word Character (Not Whitespace) 1
 var re4='.*?';  // Non-greedy match on filler
 var simpleWord='([a-z]*)';  // Word 2
 var re6='.*?';  // Non-greedy match on filler
-var re7='((?:http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))';  // HTTP URL 1
+var re7='((?:file|http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))';  // HTTP URL 1
 //var foundCss = '([#|\\.]?)([\\w|:|\\s|\\.]+)';
 
 
@@ -81,46 +128,50 @@ var shedFileOpened = function(err, fd) {
       // <canvas id="webgl-container" width="512" height="512"></canvas>
       // <img id="img-0" src="cyan.jpg"/>
       // <img id="img-1" src="cyan-alt.jpg"/>
-      var leftImg = null;
-      var rightImg = null;
-      var canvasC = false;
-
-      var guiWidth = 512;
-      var guiHeight = 512;
-
-      this.guiWin = NWGui.Window.open(url, {
-        width: guiWidth,
-        height: guiHeight,
-        focus: false,
-        frame: true,
-        toolbar: true,
-        show: true
-      });
-
-      leftImg = document.createElement("img");
-      rightImg = document.createElement("img");
-      canvasC = document.createElement("canvas");
-
-      canvasC.width = leftImg.width = rightImg.width = guiWidth;
-      canvasC.height = leftImg.height = rightImg.height = guiHeight;
-
-      this.lastBridge = nwglBridge(window, this.guiWin, canvasC, leftImg, rightImg, vertexS, fragmentS, callback);
-
-      leftImg.src = rightImg.src = "cyan.jpg";
-
-      document.body.appendChild(canvasC);
-      document.body.appendChild(leftImg);
-      document.body.appendChild(rightImg);
-
       //callback.pending();
-      //callback();
+      //callback(false, 123);
+      var p = wang(url);
+      p.then(function(result) {
+        console.log("the result is: " + result);
+        console.log("slug: " + this.slug);
+        callback();
+      });
     });
 
+    //this.And(cssSelectorShouldBePresent, function(cssSelector, callback) {
+    //});
+
     this.Then(cssSelectorShouldBePresent, function(cssSelector, callback) {
+    //console.log(cssSelector.toString(), callback.toString());
       //console.log(this.worldIndex, "css: " + cssSelector, "guiWin: " + this.guiWin.window.document);
-      var foundSelector = this.guiWin.window.document.querySelector(cssSelector);
+      //var foundSelector = this.guiWin.window.document.querySelector(cssSelector);
       //callback("error");
       //callback(!foundSelector);
+      callback();
+    });
+
+    //this.Before(function (scenario, callback) {
+    //  console.log("before !!!" + scenario.getName(), "(" + scenario.getUri() + ":" + scenario.getLine() + ")");
+    //  callback();
+    //});
+
+    this.Then(/^fail$/, function (callback) {
+      //this is TRUE when page FAILS to load
+      callback();
+    });
+
+    this.registerHandler('BeforeFeature', function (event, callback) {
+      this.slug = slugify(event.getPayloadItem("feature").getName());
+      callback();
+    });
+
+    this.registerHandler('BeforeScenario', function (event, callback) {
+      this.slug = this.slug + '-' + slugify(event.getPayloadItem("scenario").getName());
+      callback();
+    });
+
+    this.registerHandler('BeforeStep', function (event, callback) {
+      this.slug = this.slug + '-' + slugify(event.getPayloadItem("step").getName());
       callback();
     });
   };

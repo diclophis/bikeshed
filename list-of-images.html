@@ -1,0 +1,110 @@
+<html>
+  <head>
+    <style>
+      div {
+        text-align: left;
+      }
+
+      ol {
+        list-style: none;
+        display: inline-block;
+      }
+
+      ol li {
+        float: left;
+        margin: 0 -100% 0 0;
+      }
+
+      ol li img {
+        opacity: 0;
+        width: 10em;
+      }
+
+      ol li.prev img, ol li.next img {
+        opacity: 0.05;
+      }
+
+      ol li.curr img {
+        opacity: 0.95;
+      }
+
+      form {
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div id="list-of-images-container">
+        <form>
+          <input id="progress" type="range" />
+        </form>
+        <ol id="list-of-images">
+          <li>
+            <img src="test-explorer/cyan.jpg">
+          </li>
+          <li class="prev">
+            <img src="test-explorer/cyan-alt.jpg">
+          </li>
+          <li class="curr">
+            <img src="test-explorer/cyan.jpg">
+          </li>
+          <li class="next">
+            <img src="test-explorer/cyan-alt.jpg">
+          </li>
+          <li>
+            <img src="test-explorer/cyan.jpg">
+          </li>
+        </ol>
+      </div>
+      <div id="2-list-of-images-container">
+        <form>
+          <input id="2-progress" type="range" />
+        </form>
+        <ol id="2-list-of-images">
+          <li>
+            <img src="test-explorer/cyan.jpg">
+          </li>
+          <li class="prev">
+            <img src="test-explorer/cyan-alt.jpg">
+          </li>
+          <li class="curr">
+            <img src="test-explorer/cyan.jpg">
+          </li>
+          <li class="next">
+            <img src="test-explorer/cyan-alt.jpg">
+          </li>
+          <li>
+            <img src="test-explorer/cyan.jpg">
+          </li>
+        </ol>
+      </div>
+    </div>
+    <script>
+      var progress = document.getElementById("progress");
+      var listOfImages = document.getElementById("list-of-images");
+
+      var setActive = function(x) {
+        for (var i=0; i<listOfImages.children.length; i++) {
+          var imageItem = listOfImages.children[i];
+          console.log(imageItem);
+          if (i === (x - 1)) {
+            imageItem.className = "prev";
+          } else if (i === x) {
+            imageItem.className = "curr";
+          } else if (i === (x + 1)) {
+            imageItem.className = "next";
+          } else {
+            imageItem.className = "";
+          }
+        }
+      };
+
+      progress.max = (listOfImages.children.length - 1);
+
+      progress.oninput = function(e) {
+        console.log(this.value);
+        setActive(parseInt(this.value));
+      };
+    </script>
+  </body>
+</html>
