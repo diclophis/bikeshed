@@ -7,192 +7,61 @@
 var fs = require('fs');
 var NWGui = require('nw.gui');
 var Cucumber = require('cucumber');
+
 var Promise = require("bluebird");
+Promise.onPossiblyUnhandledRejection(function(error){
+  throw error;
+});
 
 var ansispan = require('./ansispan');
 var util = require('./util')
 var dirname = util.dirname;
 var nwglBridge = require('./nwgl_bridge');
 var slugify = require('./slug');
-
-NWGui.Window.get().showDevTools();
-
-var makeNewWindow = function() {
-      var leftImg = null;
-      var rightImg = null;
-      var canvasC = false;
-
-      var guiWidth = 512;
-      var guiHeight = 512;
-
-      this.guiWin = NWGui.Window.open(url, {
-        width: guiWidth,
-        height: guiHeight,
-        focus: false,
-        frame: true,
-        toolbar: true,
-        show: true
-      });
-
-      leftImg = document.createElement("img");
-      rightImg = document.createElement("img");
-      canvasC = document.createElement("canvas");
-
-      canvasC.width = leftImg.width = rightImg.width = guiWidth;
-      canvasC.height = leftImg.height = rightImg.height = guiHeight;
-
-      this.lastBridge = nwglBridge(window, this.guiWin, canvasC, leftImg, rightImg, vertexS, fragmentS, callback);
-
-      leftImg.src = rightImg.src = "cyan.jpg";
-
-      document.body.appendChild(canvasC);
-      document.body.appendChild(leftImg);
-      document.body.appendChild(rightImg);
-};
-
-var wang = Promise.promisify(function(a, b) {
-  console.log(a.toString(), b.toString());
-
-  //console.log("start!!!!!!!!!!!", a);
-
-  setTimeout(function() {
-    b(false, 'abc');
-  }, 5000);
-});
+var supportCodeMaker = require('./support-code');
 
 
 // Grab the arguments
 var projectDirectory = NWGui.App.argv[0];
-var url = "http://google.com/";
-
-var re1='((?:[a-z]*))';  // Word 1
-var filler='.*?';  // Non-greedy match on filler
-var re3='([a-z])';  // Any Single Word Character (Not Whitespace) 1
-var re4='.*?';  // Non-greedy match on filler
-var simpleWord='([a-z]*)';  // Word 2
-var re6='.*?';  // Non-greedy match on filler
-var re7='((?:file|http|https)(?::\\/{2}[\\w]+)(?:[\\/|\\.]?)(?:[^\\s"]*))';  // HTTP URL 1
-//var foundCss = '([#|\\.]?)([\\w|:|\\s|\\.]+)';
-
-
-//var authenticationTokens = new RegExp("I" + filler + "am" + filler + "authenticated" + filler + "as" + filler + simpleWord, ["i"]);
-var authenticationTokens = new RegExp(".*authenticated.*as\ (.*)", ["i"]);
-var needToOpenUrl = new RegExp(".*window\ (.*)", ["i"]);
-//var browserResolution = new RegExp(".*resolution.*is\ (.*)", ["i"]);
-var followingUsers = new RegExp(".*the.*following.*users.*exist", ["i"]);
-var followingBrowserResolution = new RegExp(".*my.*browser.*resolution.*is.*", ["i"]);
-var cssSelectorShouldBePresent = new RegExp(".*see\ (.*)", ["i"]);
-//console.log(cssSelectorShouldBePresent.toString());
+var extendedSupportCode = require(projectDirectory + '/features/step_definitions');
 
 var vertexS = document.getElementById("vertex-0").innerHTML;
 var fragmentS = document.getElementById("fragment-0").innerHTML;
+
+var runCucumberOnShedfile = Promise.promisify(function(featureSource, callbackWhenDoneWithCucumber) {
+
+  // initialize cucumber with given feature gherkin source, and extended support code class
+  var cucumber = new Cucumber(featureSource, supportCodeMaker(extendedSupportCode));
+
+  // TODO: better listener for rendering results
+  var options = {logToConsole: false, coffeeScriptSnippets: false, snippets: true};
+  var formatter = new Cucumber.Listener.PrettyFormatter(options);
+  var formatter = new Cucumber.Listener.SummaryFormatter(options);
+  var formatter = new Cucumber.Listener.ProgressFormatter(options);
+
+  cucumber.attachListener(formatter);
+
+  cucumber.start(function() {
+    callbackWhenDoneWithCucumber(false, formatter);
+  });
+});
 
 var shedFileOpened = function(err, fd) {
   if (err) throw err;
 
   var featureSource = fd.toString();
 
-  var worldCount = 0;
-
-  var extendedSupportCode = require(projectDirectory + '/features/step_definitions');
-
-  var supportCode = function() {
-    this.World = function(callback) {
-      //console.log(this.bar, "Make World: " + worldCount);
-      callback({worldIndex: worldCount++});
-    };
-
-    extendedSupportCode.call(this);
-
-    this.Given(followingUsers, function(tokens, callback) {
-      //console.log(this.foo, "users: " + tokens.hashes());
-      callback(false); // return presence of errors
-    });
-
-    this.Given(followingBrowserResolution, function(tokens, callback) {
-      //console.log(this.foo, "resolutions: " + tokens.hashes());
-      callback(false); // return presence of errors
-    });
-
-    //this.Given(browserResolution, function(tokens, callback) {
-    //  console.log(this.foo, "res: " + tokens);
-    //  callback();
-    //});
-
-    this.Given(authenticationTokens, function(tokens, callback) {
-      //console.log(this.foo, "tokens: " + tokens);
-      callback();
-    });
-
-    this.Given(needToOpenUrl, function(url, callback) {
-      // <canvas id="webgl-container" width="512" height="512"></canvas>
-      // <img id="img-0" src="cyan.jpg"/>
-      // <img id="img-1" src="cyan-alt.jpg"/>
-      //callback.pending();
-      //callback(false, 123);
-      var p = wang(url);
-      p.then(function(result) {
-        console.log("the result is: " + result);
-        console.log("slug: " + this.slug);
-        callback();
-      });
-    });
-
-    //this.And(cssSelectorShouldBePresent, function(cssSelector, callback) {
-    //});
-
-    this.Then(cssSelectorShouldBePresent, function(cssSelector, callback) {
-    //console.log(cssSelector.toString(), callback.toString());
-      //console.log(this.worldIndex, "css: " + cssSelector, "guiWin: " + this.guiWin.window.document);
-      //var foundSelector = this.guiWin.window.document.querySelector(cssSelector);
-      //callback("error");
-      //callback(!foundSelector);
-      callback();
-    });
-
-    //this.Before(function (scenario, callback) {
-    //  console.log("before !!!" + scenario.getName(), "(" + scenario.getUri() + ":" + scenario.getLine() + ")");
-    //  callback();
-    //});
-
-    this.Then(/^fail$/, function (callback) {
-      //this is TRUE when page FAILS to load
-      callback();
-    });
-
-    this.registerHandler('BeforeFeature', function (event, callback) {
-      this.slug = slugify(event.getPayloadItem("feature").getName());
-      callback();
-    });
-
-    this.registerHandler('BeforeScenario', function (event, callback) {
-      this.slug = this.slug + '-' + slugify(event.getPayloadItem("scenario").getName());
-      callback();
-    });
-
-    this.registerHandler('BeforeStep', function (event, callback) {
-      this.slug = this.slug + '-' + slugify(event.getPayloadItem("step").getName());
-      callback();
-    });
-  };
-
-  var cucumber = Cucumber(featureSource, supportCode);
-  var options = {logToConsole: false, coffeeScriptSnippets: false, snippets: true};
-  var formatter = Cucumber.Listener.PrettyFormatter(options);
-  //var formatter = Cucumber.Listener.SummaryFormatter(options);
-  //var formatter = Cucumber.Listener.ProgressFormatter(options);
-
-  cucumber.attachListener(formatter);
-
-  cucumber.start(function() {
+  runCucumberOnShedfile(featureSource).then(function(formatter) {
     var p = document.createElement('pre');
     p.innerHTML = ansispan(formatter.getLogs());
     document.body.appendChild(p);
   });
 };
 
-window.boot = function() {
+var boot = function() {
   //console.log('nw directory: ' + process.cwd(), dirname, projectDirectory + "/Shedfile");
+  NWGui.Window.get().showDevTools();
+  window.focus();
 
   fs.readFile(projectDirectory + "/Shedfile", shedFileOpened);
 };
@@ -200,5 +69,3 @@ window.boot = function() {
 window.addEventListener('load', function() {
   boot();
 });
-
-console.log("foo");

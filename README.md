@@ -77,9 +77,5 @@ changes/<screenSize> # for a given screenSize, and feature, what has it looked l
 
 latest/ => deltas/$lastKnownGoodVersion/$currentVersion
 
-
 ListOfImages
-
-
-
 
