@@ -44,38 +44,38 @@ For each screensize
 
 # Directory Structure
 
-blank images are possible, layers are stacked
+    blank images are possible, layers are stacked
 
-<featureName>-<clickStack> => can-oni-cal
+    <featureName>-<clickStack> => can-oni-cal
 
-series/can-oni-cal/<sreenSize> # history of feature, grouped by screenSize
-  0 => <uuid>-<md5> # ordering by created-at on disk is important, 0 is symbolic
-  1
+    series/can-oni-cal/<sreenSize> # history of feature, grouped by screenSize
+      0 => <uuid>-<md5> # ordering by created-at on disk is important, 0 is symbolic
+      1
 
-series/can-ani-cal/<screenSize>
-  0
-  1
+    series/can-ani-cal/<screenSize>
+      0
+      1
 
-branches/$branchNameLeft/<screenSize> # see the stack of screenshots for a given branch, grouped by screenSize
-  can-oni-cal => series/can-oni-cal/0
-  can-ani-cal => series/can-ani-cal/0
+    branches/$branchNameLeft/<screenSize> # see the stack of screenshots for a given branch, grouped by screenSize
+      can-oni-cal => series/can-oni-cal/0
+      can-ani-cal => series/can-ani-cal/0
 
-branches/$branchNameRight/<screenSize>
-  can-oni-cal => series/can-oni-cal/1
-  can-ani-cal => series/can-ani-cal/1
+    branches/$branchNameRight/<screenSize>
+      can-oni-cal => series/can-oni-cal/1
+      can-ani-cal => series/can-ani-cal/1
 
-deltas/$branchNameLeft/$branchNameRight/<screenSize> # differences between noted branchNames, grouped by screenSize ...
-  can-oni-cal # created if branches/$branchNameLeft/can-oni-cal != branches/$branchNameRight/can-oni-cal, md5 used as shortcut
-    
-changes/<screenSize> # for a given screenSize, and feature, what has it looked like over time
-  can-oni-cal/
-    0 # created when deltas/$branchNameLeft/$branchNameRight/<screenSize>/can-oni-cal created
-    1
-    2
-    3
-    4
+    deltas/$branchNameLeft/$branchNameRight/<screenSize> # differences between noted branchNames, grouped by screenSize ...
+      can-oni-cal # created if branches/$branchNameLeft/can-oni-cal != branches/$branchNameRight/can-oni-cal, md5 used as shortcut
+        
+    changes/<screenSize> # for a given screenSize, and feature, what has it looked like over time
+      can-oni-cal/
+        0 # created when deltas/$branchNameLeft/$branchNameRight/<screenSize>/can-oni-cal created
+        1
+        2
+        3
+        4
 
-latest/ => deltas/$lastKnownGoodVersion/$currentVersion
+    latest/ => deltas/$lastKnownGoodVersion/$currentVersion
 
-ListOfImages
+    ListOfImages
 
